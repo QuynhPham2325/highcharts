@@ -1,0 +1,30 @@
+{
+  "name": "Pie with Legend Box (Highcharts)",
+  "description": "Pie/Donut chart dùng Highcharts + custom legend box có thể click ẩn/hiện.",
+  "components": [
+    {
+      "id": "viz",
+      "type": "visualization",
+      "entry": "viz.html"
+    }
+  ],
+  "data": {
+    "tables": [
+      {
+        "id": "DEFAULT",
+        "label": "Main",
+        "columns": [
+          { "id": "dim", "label": "Dimension", "type": "TEXT", "concept": "DIMENSION" },
+          { "id": "val", "label": "Metric", "type": "NUMBER", "concept": "METRIC" }
+        ]
+      }
+    ]
+  },
+  "resources": {
+    "js": [
+      "https://code.highcharts.com/highcharts.js",
+      "https://code.highcharts.com/modules/accessibility.js"
+    ],
+    "css": []
+  }
+}
