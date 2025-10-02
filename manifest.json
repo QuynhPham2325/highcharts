@@ -1,6 +1,10 @@
 {
   "name": "Pie with Legend Box (Highcharts)",
+  "organization": "QuynhPham",
   "description": "Pie/Donut chart dùng Highcharts + custom legend box có thể click ẩn/hiện.",
+  "logoUrl": "https://raw.githubusercontent.com/github/explore/main/topics/highcharts/highcharts.png",
+  "organizationUrl": "https://github.com/QuynhPham2325",
+  "supportUrl": "https://github.com/QuynhPham2325/highcharts/issues",
   "components": [
     {
       "id": "viz",
