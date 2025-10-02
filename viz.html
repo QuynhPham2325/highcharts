@@ -3,42 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <style>
-    #wrap {
-      display: grid;
-      grid-template-columns: 1fr auto; /* chart | legend */
-      gap: 12px;
-      align-items: start;
-    }
-    #container {
-      min-width: 360px;
-      height: 360px;
-    }
-    #customLegend {
-      display: flex;
-      flex-direction: column;
-    }
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 10px;
-      margin: 4px 0;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      font: 12px/1.2 Arial, sans-serif;
-      cursor: pointer;
-      user-select: none;
-      background: #fff;
-    }
+    #wrap { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+    #container { min-width: 360px; height: 360px; }
+    #customLegend { display: flex; flex-direction: column; }
+    .item { display: flex; align-items: center; gap: 10px; padding: 6px 10px; margin: 4px 0;
+            border: 1px solid #e0e0e0; border-radius: 6px; font: 12px/1.2 Arial, sans-serif;
+            cursor: pointer; user-select: none; background: #fff; }
     .item:hover { box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-    .symbol {
-      width: 14px; height: 14px; border-radius: 50%;
-      flex: 0 0 14px;
-    }
+    .symbol { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 14px; }
     .name { font-weight: 600; }
     .value { margin-left: auto; opacity: .8; }
     .hidden { opacity: .4; }
-    /* co giãn theo khung của Looker */
     html, body { height: 100%; margin: 0; }
   </style>
 </head>
@@ -49,41 +24,11 @@
   </div>
 
   <script>
-    // API của Community Viz
     const dscc = window.dscc;
-
-    // Tạo chart 1 lần, chỉ cập nhật series khi data đổi
     let chart;
 
     function formatPercent(val) {
       return (Math.round(val * 10) / 10).toFixed(1) + '%';
-    }
-
-    function buildChart(seriesData, total) {
-      if (!chart) {
-        chart = Highcharts.chart('container', {
-          chart: { type: 'pie', spacing: [10,10,10,10] },
-          title: { text: null },
-          tooltip: { pointFormat: '<b>{point.percentage:.1f}%</b>' },
-          accessibility: { point: { valueSuffix: '%' } },
-          plotOptions: {
-            pie: {
-              allowPointSelect: true,
-              cursor: 'pointer',
-              dataLabels: {
-                enabled: true,
-                formatter: function () {
-                  return this.point.name + ': ' + Highcharts.numberFormat(this.percentage, 1) + '%';
-                }
-              }
-            }
-          },
-          series: [{ name: 'Share', colorByPoint: true, data: seriesData }]
-        });
-      } else {
-        chart.series[0].setData(seriesData, true, { duration: 200 });
-      }
-      buildLegend(seriesData, total);
     }
 
     function buildLegend(seriesData, total) {
@@ -111,39 +56,49 @@
         item.appendChild(name);
         item.appendChild(value);
 
-        // Toggle hiển thị lát bánh khi click
         item.addEventListener('click', () => {
           const point = chart.series[0].points[idx];
           point.setVisible(!point.visible);
           item.classList.toggle('hidden', !point.visible);
         });
 
-        // Hover đồng bộ
-        item.addEventListener('mouseenter', () => {
-          const point = chart.series[0].points[idx];
-          point.setState('hover');
-        });
-        item.addEventListener('mouseleave', () => {
-          const point = chart.series[0].points[idx];
-          point.setState('normal');
-        });
+        item.addEventListener('mouseenter', () => chart.series[0].points[idx].setState('hover'));
+        item.addEventListener('mouseleave', () => chart.series[0].points[idx].setState('normal'));
 
         legend.appendChild(item);
       });
     }
 
-    // Nhận dữ liệu từ Looker Studio
     function draw(data) {
-      const rows = data.tables.DEFAULT.rows || [];
-      // rows: [{dimensions:[<dim>], metrics:[<val>]}]
+      const rows = (data.tables.DEFAULT && data.tables.DEFAULT.rows) ? data.tables.DEFAULT.rows : [];
       const total = rows.reduce((s, r) => s + (Number(r.metrics[0]) || 0), 0);
+      const seriesData = rows.map(r => ({ name: String(r.dimensions[0]), y: Number(r.metrics[0]) || 0 }));
 
-      const seriesData = rows.map((r) => ({
-        name: String(r.dimensions[0]),
-        y: Number(r.metrics[0]) || 0
-      }));
-
-      buildChart(seriesData, total);
+      if (!chart) {
+        chart = Highcharts.chart('container', {
+          chart: { type: 'pie', spacing: [10,10,10,10] },
+          title: { text: null },
+          tooltip: { pointFormat: '<b>{point.percentage:.1f}%</b>' },
+          accessibility: { point: { valueSuffix: '%' } },
+          plotOptions: {
+            pie: {
+              allowPointSelect: true,
+              cursor: 'pointer',
+              dataLabels: {
+                enabled: true,
+                formatter: function () {
+                  return this.point.name + ': ' +
+                         Highcharts.numberFormat(this.percentage, 1) + '%';
+                }
+              }
+            }
+          },
+          series: [{ name: 'Share', colorByPoint: true, data: seriesData }]
+        });
+      } else {
+        chart.series[0].setData(seriesData, true, { duration: 200 });
+      }
+      buildLegend(seriesData, total);
     }
 
     dscc.subscribeToData(draw, { transform: dscc.tableTransform });
